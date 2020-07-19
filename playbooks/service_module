@@ -1,0 +1,45 @@
+---
+- hosts: web1
+  tasks:
+    - service:
+        name: httpd
+        state: started
+        enabled: true
+        
+ ## We have a playbook ~/playbooks/file.yml to copy a file with a welcome message under httpd server root on web1 node. Make changes in playbook so that httpd server reloads after copying the file, make sure it does not restart the httpd server.
+  
+ ---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Copy Apache welcome file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+    - service:
+        name: httpd
+        state: reloaded
+        
+##We created a playbook ~/playbooks/config.yml to enable port 443 for httpd on web1 node as we do want to run nginx on default port 80 so port 80 needs to be free. Make changes in playbook so that httpd service restarts after making change.
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Make changes in Apache config
+      replace:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: "^Listen 80"
+        replace: "Listen 443"
+
+    - name: Restart Apache
+      service:
+        name: httpd
+        state: restarted
+        
+        
+---
+- hosts: web1
+  tasks:
+    - name: Install nginx restart service and start service even after reboot(enable)
+      yum: name=nginx state=present
+    - service: name=nginx state=restart enabled=true
