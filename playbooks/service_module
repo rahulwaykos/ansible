@@ -42,4 +42,4 @@
   tasks:
     - name: Install nginx restart service and start service even after reboot(enable)
       yum: name=nginx state=present
-    - service: name=nginx state=restart enabled=true
+    - service: name=nginx state=restarted enabled=true
