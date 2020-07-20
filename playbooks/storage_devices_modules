@@ -1,0 +1,68 @@
+#create vg
+---
+- hosts: node00
+  tasks:
+    - name: Create vg
+      lvg:
+        vg: vg_sql
+        pvs: /dev/vda1
+
+#to create a new logical volume called lv_data. The playbook should only run on node node00. Use the VG vg_sql for the VG. Size of the LVM should be 500MB
+
+---
+- hosts: node00
+  tasks: 
+    - name: Create LV
+      lvol:
+        vg: vg_sql
+        lv: lv_data
+        size: 500M
+        
+# The playbook should create a new filesystem on the logical volume lv_data on node00. Create this playbook under ~/playbooks directory.
+# fstype = ext4 dev: /dev/vg_sql/lv_data
+
+---
+- hosts: node00
+  tasks:
+    - name: format device with ext4
+      filesystem:
+        fstype: ext4
+        dev: /dev/vg_sql/lv_data
+        
+# The playbook should only run on node00 and mount the newly created filesystem /dev/vg_sql/lv_data on the directory /mnt/data. Create this playbook under ~/playbooks directory.
+# src = /dev/vg_sql/lv_data name = /mnt/data fstype = ext4 state = mounted        
+  
+--- 
+- hosts: node00
+  tasks:
+    - name: mount filesystem on dir 
+      mount:
+        name: /mnt/data
+        src: /dev/vg_sql/lv_data
+        fstype: ext4
+        state: mounted
+      
+      
+##  The playbook should make use of the same Volume Group we created as part of Question 2 called vg_sql. It should then create a new logical volume called mssql_db, size 1G, an ext4 filesystem on this device and mount it on /mnt/mssql on the node00 alone
+---
+- hosts: node00
+  tasks:
+    - name: create logical vol
+      lvol:
+        vg: vg_sql
+        lv: mssql_db
+        size: 1G
+        
+    - name: Format
+      filesystem:
+        fstype: ext4
+        dev: /dev/vg_sql/mssql_db
+    
+    - name: Mount 
+      mount:
+        name: /mnt/mssql
+        src: /dev/vg_sql/mssql_db
+        fstype: ext4
+        state: mounted
+        
+        
